@@ -1,11 +1,12 @@
 const axios = require('axios');
 const localLocationService = require('./localLocationService');
 const redis = require('redis');
+require('dotenv').config();
 // Địa chỉ Python Server
 const PYTHON_API_URL = process.env.PYTHON_API_URL;
 const REDIS_URL = process.env.REDIS_URL;
 //Connect to redis server
-const redisClient = redis.createClient(REDIS_URL);
+const redisClient = redis.createClient({ url: REDIS_URL });
 
 redisClient.on('error',(err)=>console.log('Loi redis: ',err));
 redisClient.on('connect',()=>console.log('Ket noi thanh cong: '));
