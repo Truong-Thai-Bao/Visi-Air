@@ -1,0 +1,10 @@
+# Node.js
+node_modules/
+
+# Python (Vì tôi thấy bạn có dùng venv)
+venv/
+__pycache__/
+
+# Các file cấu hình môi trường bảo mật (Bắt buộc ignore)
+.env
+*.env
