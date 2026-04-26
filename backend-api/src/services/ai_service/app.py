@@ -136,13 +136,13 @@ def fetch_last_24_hours_data(lat, lon):
 def predict():
     try:
         data = request.json
-        # lat = data.get('lat')
-        # lon = data.get('lon')
-        # name = data.get('name')
+        lat = data.get('lat')
+        lon = data.get('lon')
+        name = data.get('name')
         
-        lat = 10.8231
-        lon = 106.6297
-        name = "Ho Chi Minh"
+        # lat = 10.8231
+        # lon = 106.6297
+        # name = "Ho Chi Minh"
         # BẮT CỜ TỪ NODE.JS GỬI SANG (mặc định là False)
         is_forecast = data.get('is_forecast', False)
 
