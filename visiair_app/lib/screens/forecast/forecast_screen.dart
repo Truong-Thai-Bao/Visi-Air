@@ -22,6 +22,7 @@ class _ForecastScreenState extends State<ForecastScreen> {
   List<dynamic> _hourlyForecast = [];
   List<dynamic> _dailyForecast = [];
   String _currentDate = "";
+  String _displayLocation = "Hồ Chí Minh";
 
   @override
   void initState() {
@@ -41,6 +42,11 @@ class _ForecastScreenState extends State<ForecastScreen> {
       if (locationToFetch.isEmpty || locationToFetch.contains("Đang định vị")) {
         locationToFetch = "Hồ Chí Minh";
       }
+
+      // Cập nhật location hiển thị
+      setState(() {
+        _displayLocation = locationToFetch;
+      });
 
       // Gọi API từ Service bạn đã viết (Nhớ đổi tên hàm cho khớp với file service của bạn)
       final data = await _forecasetService.fetchForcastData(locationToFetch);
@@ -164,7 +170,35 @@ class _ForecastScreenState extends State<ForecastScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 8),
+
+                      // Hiển thị location ở giữa, giống Home
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.location_on,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              _displayLocation,
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 22),
 
                       // --- 2. PHẦN "HÔM NAY" ---
                       Row(
