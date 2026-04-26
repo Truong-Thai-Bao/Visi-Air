@@ -8,7 +8,9 @@ import numpy as np
 import pandas as pd
 import requests
 from datetime import datetime, timedelta
-
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' #tắt log
 import tensorflow as tf
 
 app = Flask(__name__)
