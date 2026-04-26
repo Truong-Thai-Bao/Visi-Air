@@ -20,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
   String _location = "Đang định vị..."; // Giá trị mặc định ban đầu
+  int _currentAqi = 0; // Biến lưu trữ AQI để truyền sang ActivityScreen
 
   @override
   void initState() {
@@ -50,14 +51,32 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Hàm cập nhật AQI từ HomeContent để dùng cho ActivityScreen
+  void _updateAqi(int aqi) {
+    if (_currentAqi != aqi) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted)
+          setState(() {
+            _currentAqi = aqi;
+          });
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Danh sách các màn hình tương ứng với từng tab
     final List<Widget> _pages = [
-      HomeContent(location: _location), // Tab 0: Trang chủ
+      HomeContent(
+        location: _location,
+        onAqiUpdated: _updateAqi,
+      ), // Tab 0: Trang chủ
       const SearchScreen(), // Tab 1: Trang tìm kiếm
       const ForecastScreen(), // Tab 2: Trang dự báo
-      ActivityScreen(location: _location), // Tab 3: Trang hoạt động
+      ActivityScreen(
+        location: _location,
+        aqi: _currentAqi,
+      ), // Tab 3: Trang hoạt động
       const NotificationScreen(), // Tab 4
     ];
     return Scaffold(
@@ -143,7 +162,8 @@ class _HomeScreenState extends State<HomeScreen> {
 // ===============================================================
 class HomeContent extends StatefulWidget {
   final String location;
-  const HomeContent({super.key, required this.location});
+  final Function(int)? onAqiUpdated;
+  const HomeContent({super.key, required this.location, this.onAqiUpdated});
 
   @override
   State<HomeContent> createState() => _HomeContentState();
@@ -239,6 +259,12 @@ class _HomeContentState extends State<HomeContent> {
           colorHex = colorHex.replaceAll("#", "");
           if (colorHex.length == 6) colorHex = "FF$colorHex";
           _aqiColor = Color(int.parse(colorHex, radix: 16));
+
+          // Đẩy dữ liệu AQI ngược lên HomeScreen
+          if (widget.onAqiUpdated != null && aqiData['aqi'] != null) {
+            int parsedAqi = int.tryParse(aqiData['aqi'].toString()) ?? 0;
+            widget.onAqiUpdated!(parsedAqi);
+          }
         }
 
         _isLoading = false;

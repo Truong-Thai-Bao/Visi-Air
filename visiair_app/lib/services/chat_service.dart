@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class ChatService {
   // static const String _baseUrl = 'http://10.0.2.2:3000/api/chat';
-  static const String _baseUrl = 'http://127.0.0.1:3005/api/chat';
+  static const String _baseUrl = 'https://visi-air.onrender.com/api/chat';
 
   final String location;
   ChatService({required this.location});

@@ -1,11 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../models/activity_suggestion.dart'; // Import Model
-import '../../services/activity_service.dart';  // Import Service
+import '../../services/activity_service.dart'; // Import Service
 
 class ActivityScreen extends StatefulWidget {
   final String location;
-  const ActivityScreen({super.key, required this.location});
+  final int aqi;
+  const ActivityScreen({super.key, required this.location, required this.aqi});
 
   @override
   State<ActivityScreen> createState() => _ActivityScreenState();
@@ -13,18 +15,78 @@ class ActivityScreen extends StatefulWidget {
 
 class _ActivityScreenState extends State<ActivityScreen> {
   final ActivityService _activityService = ActivityService();
-  
+
   // Biến chứa dữ liệu tương lai
   late Future<List<ActivitySuggestion>> _activityFuture;
 
-  // Giả sử lấy từ API location hoặc truyền từ màn hình trước
-  int currentAQI = 32; // Ví dụ AQI hiện tại
+  // Giá trị mặc định
+  static const String defaultLocation = 'Hồ Chí Minh';
+  static const int defaultAqi = 60;
 
   @override
   void initState() {
     super.initState();
-    // Gọi hàm lấy dữ liệu ngay khi màn hình khởi tạo
-    _activityFuture = _activityService.fetchActivities(currentAQI,widget.location);
+    _loadData();
+  }
+
+  @override
+  void didUpdateWidget(covariant ActivityScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reload lại data nếu aqi hoặc location từ HomeScreen bị thay đổi
+    if (widget.aqi != oldWidget.aqi || widget.location != oldWidget.location) {
+      _loadData();
+    }
+  }
+
+  void _loadData() {
+    setState(() {
+      // Sử dụng giá trị mặc định nếu chưa có
+      final location = widget.location.isEmpty
+          ? defaultLocation
+          : widget.location;
+      final aqi = widget.aqi <= 0 ? defaultAqi : widget.aqi;
+
+      print('Loading activities for: $location, AQI: $aqi');
+
+      // Gọi Backend thông qua biến truyền từ Home và map JSON qua Model
+      _activityFuture = _activityService.activitySuggest(location, aqi).then((
+        response,
+      ) {
+        // 1. Ép kiểu response về dạng Map an toàn
+        Map<String, dynamic> responseMap = Map<String, dynamic>.from(response);
+
+        // 2. Trích xuất 'data' và 'reply'
+        final data = responseMap['data'];
+        final reply = (data is Map) ? data['reply'] : null;
+
+        // 3. Xử lý 'reply' thành List<dynamic>
+        List<dynamic> listData = [];
+        if (reply is List) {
+          listData = reply;
+        } else if (reply is String) {
+          try {
+            final decodedReply = jsonDecode(reply);
+            if (decodedReply is List) {
+              listData = decodedReply;
+            }
+          } catch (e) {
+            print('Error parsing reply: $e');
+            listData = [];
+          }
+        }
+
+        print('Parsed activities count: ${listData.length}');
+
+        // 4. Map dữ liệu vào Model
+        return listData
+            .map(
+              (item) => ActivitySuggestion.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ),
+            )
+            .toList();
+      });
+    });
   }
 
   @override
@@ -39,7 +101,11 @@ class _ActivityScreenState extends State<ActivityScreen> {
           children: [
             const Text(
               "Lời khuyên sức khỏe",
-              style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.normal),
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                fontWeight: FontWeight.normal,
+              ),
             ),
             const SizedBox(height: 4),
             Row(
@@ -48,14 +114,19 @@ class _ActivityScreenState extends State<ActivityScreen> {
               children: [
                 const Icon(Icons.location_on, color: Colors.white, size: 18),
                 const SizedBox(width: 2),
-                Flexible(child: Text(
-                  widget.location,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis, // Biến động
-                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                Flexible(
+                  child: Text(
+                    widget.location.isEmpty ? defaultLocation : widget.location,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis, // Biến động
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-                )
               ],
             ),
           ],
@@ -69,13 +140,9 @@ class _ActivityScreenState extends State<ActivityScreen> {
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: () {
-              setState(() {
-                // Giả lập đổi AQI để thấy dữ liệu thay đổi
-                currentAQI = currentAQI == 32 ? 160 : 32; 
-                _activityFuture = _activityService.fetchActivities(currentAQI,widget.location);
-              });
+              _loadData(); // Tải lại trực tiếp với aqi hiện tại
             },
-          )
+          ),
         ],
       ),
       body: Container(
@@ -85,7 +152,10 @@ class _ActivityScreenState extends State<ActivityScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [AppColors.backgroundGradientStart, Color.fromARGB(255, 1, 24, 59)],
+            colors: [
+              AppColors.backgroundGradientStart,
+              Color.fromARGB(255, 1, 24, 59),
+            ],
           ),
         ),
         child: SafeArea(
@@ -95,25 +165,38 @@ class _ActivityScreenState extends State<ActivityScreen> {
             builder: (context, snapshot) {
               // 1. Đang tải dữ liệu -> Hiện vòng xoay
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator(color: Colors.white));
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                );
               }
-              
+
               // 2. Có lỗi -> Hiện thông báo lỗi
               if (snapshot.hasError) {
-                return Center(child: Text("Lỗi: ${snapshot.error}", style: const TextStyle(color: Colors.white)));
+                return Center(
+                  child: Text(
+                    "Lỗi: ${snapshot.error}",
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                );
               }
 
               // 3. Có dữ liệu -> Hiển thị danh sách
               final activities = snapshot.data ?? [];
 
               if (activities.isEmpty) {
-                return const Center(child: Text("Không có lời khuyên nào.", style: TextStyle(color: Colors.white)));
+                return const Center(
+                  child: Text(
+                    "Không có lời khuyên nào.",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                );
               }
 
               return ListView.separated(
                 padding: const EdgeInsets.fromLTRB(24, 20, 24, 100),
                 itemCount: activities.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 20),
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 20),
                 itemBuilder: (context, index) {
                   final item = activities[index];
                   return _buildAdviceCard(item); // Truyền object Model vào
@@ -157,26 +240,41 @@ class _ActivityScreenState extends State<ActivityScreen> {
                   children: [
                     Text(
                       item.title,
-                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     // Hiển thị nhãn đánh giá (Tốt/Xấu)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: item.getStatusColor().withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8)
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         item.level,
-                        style: TextStyle(color: item.getStatusColor(), fontSize: 10, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: item.getStatusColor(),
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    )
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Text(
                   item.description,
-                  style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    height: 1.5,
+                  ),
                 ),
               ],
             ),

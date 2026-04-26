@@ -6,7 +6,7 @@ class WeatherService {
     try {
       // Giả sử API nhận body JSON chứa địa điểm
       final res = await http.post(
-        Uri.parse('http://127.0.0.1:3005/api/current'),
+        Uri.parse('https://visi-air.onrender.com/api/current'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'name': name}),
       );

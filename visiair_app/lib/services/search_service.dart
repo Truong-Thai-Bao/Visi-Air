@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 class SearchService {
   Future<List<dynamic>> searchAQI(String name) async {
     try {
-      final String baseUrl = 'http://127.0.0.1:3005/api/search';
+      final String baseUrl = 'https://visi-air.onrender.com/api/search';
       final String url = name.isEmpty
           ? baseUrl
           : '$baseUrl/${Uri.encodeComponent(name)}';
@@ -30,7 +30,7 @@ class SearchService {
 
   Future<String> currentAQI(String name) async {
     try {
-      final String baseUrl = 'http://127.0.0.1:3005/api/search';
+      final String baseUrl = 'https://visi-air.onrender.com/api/search';
       final String url = name.isEmpty
           ? baseUrl
           : '$baseUrl/${Uri.encodeComponent(name)}';

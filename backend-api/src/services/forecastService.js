@@ -21,7 +21,7 @@ const getForecastData = async (cityName) => {
             throw new Error(weatherResponse.reason);
         }
 
-       
+       console.log('hi')
         // Fallback an toàn nếu Python chưa kịp code mảng (tránh sập app)
         const hourlyAqiArray = aiPrediction.hourly_aqi || Array(24).fill("--");
         const dailyAqiArray = aiPrediction.daily_aqi || Array(6).fill("--");
