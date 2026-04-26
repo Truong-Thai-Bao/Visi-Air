@@ -65,7 +65,17 @@ class _ActivityScreenState extends State<ActivityScreen> {
           listData = reply;
         } else if (reply is String) {
           try {
-            final decodedReply = jsonDecode(reply);
+            // Loại bỏ markdown syntax nếu có (```json ... ```)
+            String cleanedReply = reply;
+            if (cleanedReply.contains('```')) {
+              cleanedReply = cleanedReply
+                  .replaceAll(RegExp(r'```json\s*'), '')
+                  .replaceAll(RegExp(r'```\s*'), '');
+            }
+
+            print('Cleaned reply: $cleanedReply');
+
+            final decodedReply = jsonDecode(cleanedReply);
             if (decodedReply is List) {
               listData = decodedReply;
             }
