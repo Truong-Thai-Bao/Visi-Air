@@ -28,7 +28,7 @@ const getPrediction = async (cityName,is_forecast = false) => {
         const payload = await localLocationService.localPayload(cityName); 
         payload.is_forecast = is_forecast;
         const pythonResponse = await axios.post(PYTHON_API_URL, payload, {
-            timeout: 50000 // Timeout sau 10s
+            timeout: 100000 // Timeout sau 10s
         });
         const finalData =  pythonResponse.data;
 
