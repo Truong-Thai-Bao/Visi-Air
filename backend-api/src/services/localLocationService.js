@@ -19,10 +19,7 @@ const localPayload = async (cityName)=>{
         const geoData = await weatherService.getCoordinatesByCityName(cityName);
         
         if (!geoData) {
-            return res.status(404).json({ 
-            success: false, 
-            message: `Không tìm thấy địa điểm: ${cityName}` 
-            });
+            throw new Error(`Không tìm thấy địa điểm: ${cityName}`);
         }
         lat = geoData.lat;
         lon = geoData.lon;

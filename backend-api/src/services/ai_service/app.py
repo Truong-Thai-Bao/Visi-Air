@@ -70,8 +70,14 @@ def fetch_last_24_hours_data(lat, lon):
     air_url = f"https://air-quality-api.open-meteo.com/v1/air-quality?latitude={lat}&longitude={lon}&start_date={str_start}&end_date={str_end}&hourly=pm2_5&timezone=Asia%2FBangkok"
     
     try:
-        r_weather = requests.get(weather_url).json()
-        r_air = requests.get(air_url).json()
+        # Thêm timeout và kiểm tra HTTP status để tránh treo vô thời hạn
+        r_weather_resp = requests.get(weather_url, timeout=15)
+        r_weather_resp.raise_for_status()
+        r_weather = r_weather_resp.json()
+
+        r_air_resp = requests.get(air_url, timeout=15)
+        r_air_resp.raise_for_status()
+        r_air = r_air_resp.json()
 
         df_weather = pd.DataFrame(r_weather['hourly'])
         df_weather['time'] = pd.to_datetime(df_weather['time'])
