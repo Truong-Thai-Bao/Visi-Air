@@ -1,3 +1,4 @@
+const axios = require('axios');
 const localLocationService = require('./localLocationService')
 const helper = require('../utils/helper')
 const predictService = require('./predictService'); // Bổ sung import này ở đầu file
@@ -11,7 +12,7 @@ const getForecastData = async (cityName) => {
         const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=weather_code&daily=weather_code&timezone=Asia%2FHo_Chi_Minh&forecast_days=6`;
         
         const [weatherResponse, aiPrediction] = await Promise.all([
-            fetch(url).then(res => res.json()),
+            axios.get(url).then(res => res.data),
             predictService.getPrediction(cityName,true) // Gọi sang Python
         ]);
 

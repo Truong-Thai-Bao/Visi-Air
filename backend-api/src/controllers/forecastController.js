@@ -15,9 +15,12 @@ const getForcast = async (req,res) => {
       message:"success",
       data:forcastData
     })
-  }catch(error){
-    console.error("Lỗi trong getForcast controller:", error);
-    return res.status(500).json({message:"Lỗi lấy dữ liệu forcast ở controller"});
+  } catch (error) {
+    console.error("Lỗi trong getForcast controller:", error.message || error);
+    return res.status(500).json({
+      message: "Lỗi lấy dữ liệu forcast ở controller",
+      error: error.message || String(error)
+    });
   }
 }
 
