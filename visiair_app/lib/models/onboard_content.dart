@@ -42,7 +42,7 @@ class OnboardingContent {
   OnboardingContent(
     image: 'assets/images/walk.png',
     title: "Sống khỏe, Sống chủ động",
-    description: "Đừng để ô nhiễm cản bước chân bạn. Lên kế hoạch cho ngày mới hoàn hảo cùng AirVibe.",
+    description: "Đừng để ô nhiễm cản bước chân bạn. Lên kế hoạch cho ngày mới hoàn hảo cùng VisiAir.",
     engSub: "Live active, Live safe",
   ),
 ];

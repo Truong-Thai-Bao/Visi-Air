@@ -190,7 +190,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
                               childAspectRatio:
-                                  0.92, // Đã chỉnh lại một chút cho thẻ cân đối
+                                  0.78, // Giảm tỉ lệ để tăng chiều cao ô
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
                             ),
@@ -217,8 +217,8 @@ class _SearchScreenState extends State<SearchScreen> {
                             },
                             child: Container(
                               padding: const EdgeInsets.all(
-                                18,
-                              ), // Trừ hao viền để thoáng hơn
+                                20,
+                              ), // Tăng padding để ô cao hơn và thoáng hơn
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? const Color(0xFF4A90E2).withOpacity(0.3)
@@ -257,8 +257,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                         ),
                                       ),
                                       Container(
-                                        width: 48,
-                                        height: 48,
+                                        width: 42,
+                                        height: 42,
                                         decoration: BoxDecoration(
                                           color: dynamicColor,
                                           shape: BoxShape.circle,
@@ -285,7 +285,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                     ],
                                   ),
 
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: 2),
 
                                   // --- BODY: Lời khuyên nằm ở giữa ---
                                   // --- BODY: Lời khuyên nằm ở giữa ---
@@ -306,6 +306,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                     ),
                                   ),
                                   // --- FOOTER: Trạng thái và Tên thành phố ---
+                                  const SizedBox(height: 4),
                                   Text(
                                     status,
                                     style: TextStyle(
@@ -316,7 +317,6 @@ class _SearchScreenState extends State<SearchScreen> {
                                       letterSpacing: 0.5,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
                                   Text(
                                     cityName,
                                     maxLines: 1,

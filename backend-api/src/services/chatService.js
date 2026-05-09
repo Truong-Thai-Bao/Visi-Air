@@ -1,5 +1,4 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-// require('dotenv').config();
 
 // Khởi tạo SDK một lần
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -18,7 +17,6 @@ const getChatResponse = async (userMessage, location) => {
     `;
 
     // 2. Cấu hình cuộc hội thoại
-    // (Ở đây ta giả lập lịch sử chat ngắn để tạo ngữ cảnh)
     const chat = model.startChat({
       history: [
         {

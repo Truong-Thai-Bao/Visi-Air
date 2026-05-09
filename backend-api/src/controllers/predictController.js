@@ -20,7 +20,7 @@ const getAqiPrediction = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("❌ Lỗi Controller:", error.message);
+    console.error("Lỗi Controller:", error.message);
     
     const pythonError = error.response?.data?.error;
     const clientMessage = pythonError || error.message || "Lỗi hệ thống dự đoán";

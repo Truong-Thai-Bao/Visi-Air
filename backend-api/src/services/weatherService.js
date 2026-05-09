@@ -37,7 +37,6 @@ const fetchWeather = async (name) => {
         const lat = location.lat;
         const lon = location.lon;
 
-        // 1. CẬP NHẬT URL: Thêm dew_point_2m vào tham số current
         const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,surface_pressure,wind_speed_10m,weather_code,dew_point_2m&hourly=temperature_2m,weather_code&wind_speed_unit=ms&timezone=auto`;
         
         const res = await axios.get(url);
@@ -78,8 +77,8 @@ const fetchWeather = async (name) => {
             temperature: data.current.temperature_2m,
             humidity: data.current.relative_humidity_2m,
             wind_speed: data.current.wind_speed_10m,
-            pressure: data.current.surface_pressure, // Đã bổ sung áp suất bề mặt
-            dew: data.current.dew_point_2m,          // Đã bổ sung điểm sương
+            pressure: data.current.surface_pressure, 
+            dew: data.current.dew_point_2m,          
             time: data.current.time,
             icon: helper.getWeatherIcon(data.current.weather_code),
             forecast: nextHoursForecast 

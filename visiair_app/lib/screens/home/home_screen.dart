@@ -44,6 +44,9 @@ class _HomeScreenState extends State<HomeScreen> {
       print("Lỗi lấy vị trí: $e -> Chuyển sang mặc định: Hồ Chí Minh");
     }
 
+    // Chờ một chút để đảm bảo quy trình cấp quyền hoàn tất
+    await Future.delayed(const Duration(milliseconds: 500));
+
     if (mounted) {
       setState(() {
         _location = finalLocation;
@@ -72,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onAqiUpdated: _updateAqi,
       ), // Tab 0: Trang chủ
       const SearchScreen(), // Tab 1: Trang tìm kiếm
-      const ForecastScreen(), // Tab 2: Trang dự báo
+      ForecastScreen(initialLocation: _location), // Tab 2: Trang dự báo
       ActivityScreen(
         location: _location,
         aqi: _currentAqi,
@@ -190,8 +193,10 @@ class _HomeContentState extends State<HomeContent> {
   @override
   void initState() {
     super.initState();
-    if (widget.location != "Đang định vị...") {
-      _loadWeatherData();
+    // Không gọi _loadWeatherData() ngay - chờ cho đến khi location sẵn sàng
+    // Chỉ gọi nếu location đã được cung cấp (không phải "Đang định vị...")
+    if (widget.location.isNotEmpty && widget.location != "Đang định vị...") {
+      _loadWeatherDataWithDelay();
     }
   }
 
@@ -199,7 +204,16 @@ class _HomeContentState extends State<HomeContent> {
   void didUpdateWidget(covariant HomeContent oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.location != oldWidget.location &&
-        widget.location != "Đang định vị...") {
+        widget.location != "Đang định vị..." &&
+        widget.location.isNotEmpty) {
+      _loadWeatherDataWithDelay();
+    }
+  }
+
+  // Chờ một chút rồi mới gọi API
+  Future<void> _loadWeatherDataWithDelay() async {
+    await Future.delayed(const Duration(seconds: 1));
+    if (mounted) {
       _loadWeatherData();
     }
   }

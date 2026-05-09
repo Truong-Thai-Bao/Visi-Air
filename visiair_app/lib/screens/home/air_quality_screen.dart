@@ -309,7 +309,7 @@ class _AirQualityScreenState extends State<AirQualityScreen> {
                             ),
                             _buildDivider(),
                             _buildComponentRow(
-                              "Nồng độ bụi mịn 2.5 trong không khí",
+                              "Nồng độ bụi mịn 2.5",
                               "PM2.5",
                               "$_pm25Predict µg/m³",
                             ),

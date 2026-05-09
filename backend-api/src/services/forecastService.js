@@ -8,10 +8,8 @@ const getForecastData = async (cityName) => {
         const lat = localLocation.lat;
         const lon = localLocation.lon;
 
-        // TỐI ƯU 1: Bỏ lấy temperature từ Open-Meteo cho nhẹ, chỉ lấy weather_code làm Icon
         const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=weather_code&daily=weather_code&timezone=Asia%2FHo_Chi_Minh&forecast_days=6`;
         
-        // TỐI ƯU 2: CHẠY SONG SONG CẢ 2 API (Open-Meteo và Python AI)
         const [weatherResponse, aiPrediction] = await Promise.all([
             fetch(url).then(res => res.json()),
             predictService.getPrediction(cityName,true) // Gọi sang Python
@@ -28,18 +26,28 @@ const getForecastData = async (cityName) => {
 
         // --- XỬ LÝ DỮ LIỆU HOURLY (HÔM NAY) ---
         const hourlyData = [];
-        const currentHour = new Date().getHours();
         
-        let startIndex = weatherResponse.hourly.time.findIndex(time => new Date(time).getHours() === currentHour);
-        if (startIndex === -1) startIndex = 0;
+        // Lấy giờ hiện tại từ dữ liệu API (đã đúng múi giờ Asia/Ho_Chi_Minh)
+        const now = new Date(weatherResponse.hourly.time[0]); // Lấy timestamp đầu tiên
+        const currentTime = new Date();
+        
+        // Tìm index của giờ hiện tại hoặc giờ kế tiếp
+        let startIndex = 0;
+        for (let i = 0; i < weatherResponse.hourly.time.length; i++) {
+            const forecastTime = new Date(weatherResponse.hourly.time[i]);
+            if (forecastTime.getTime() > currentTime.getTime()) {
+                startIndex = i;
+                break;
+            }
+        }
 
         for (let i = 0; i < 5; i++) {
-            const index = startIndex + (i * 2);
+            const index = startIndex + i;
             if (index < weatherResponse.hourly.time.length) {
                 const timeString = weatherResponse.hourly.time[index];
                 
                 // Trích xuất AQI dự báo từ mảng của AI
-                let predictedAqi = hourlyAqiArray[i * 2] !== "--" ? Math.round(hourlyAqiArray[i * 2]) : "--";
+                let predictedAqi = hourlyAqiArray[index] !== "--" ? Math.round(hourlyAqiArray[index]) : "--";
 
                 hourlyData.push({
                     time: `${String(new Date(timeString).getHours()).padStart(2, '0')}:00`,

@@ -29,7 +29,6 @@ const getWeatherIcon = (code) => {
     } 
     // 95, 96, 99: Mưa giông sấm sét (Thunderstorm)
     else if (code === 95 || code === 96 || code === 99) {
-        // Nếu có tải icon sấm sét thì đổi tên ở đây, chưa có thì dùng tạm mưa
         return "thunderstorm";
     } 
     // Các trường hợp còn lại

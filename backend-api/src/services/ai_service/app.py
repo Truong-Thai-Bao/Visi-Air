@@ -2,32 +2,28 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 
 from flask import Flask, request, jsonify
-# from flask_cors import CORS
 import joblib
 import numpy as np
 import pandas as pd
 import requests
 from datetime import datetime, timedelta
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1" #ko tìm GPU
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' #tắt log
 import tensorflow as tf
 
 app = Flask(__name__)
-# CORS(app) # Mở khóa bảo mật CORS cho Frontend
 
 # ==========================================
-# 1. LOAD MÔ HÌNH VÀ SCALER (7 FEATURES, 24 TIMESTEPS)
+# 1. LOAD MÔ HÌNH VÀ SCALER (11 FEATURES, 24 TIMESTEPS)
 # ==========================================
-print("⏳ Đang tải mô hình và hệ thống Scaler...")
+print("Đang tải mô hình và hệ thống Scaler...")
 
 try:
     model = tf.keras.models.load_model('pm25_cnn_bilstm_attention.h5', compile=False)
     scaler_X = joblib.load('scaler_X.pkl')
     scaler_y = joblib.load('scaler_y.pkl')
-    print("✅ Tải mô hình thành công, sẵn sàng nhận Request!")
+    print("Tải mô hình thành công, sẵn sàng nhận Request!")
 except Exception as e:
-    print(f"❌ Lỗi khởi tạo mô hình: {e}")
+    print(f"Lỗi khởi tạo mô hình: {e}")
 
 # ==========================================
 # 2. CÁC HÀM TÍNH AQI
@@ -65,12 +61,10 @@ def fetch_last_24_hours_data(lat, lon):
     str_start = start_time.strftime("%Y-%m-%d")
     str_end = end_time.strftime("%Y-%m-%d")
 
-    # THÊM: relative_humidity_2m, dew_point_2m, surface_pressure vào URL
     weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&start_date={str_start}&end_date={str_end}&hourly=temperature_2m,wind_speed_10m,relative_humidity_2m,dew_point_2m,surface_pressure&timezone=Asia%2FBangkok"
     air_url = f"https://air-quality-api.open-meteo.com/v1/air-quality?latitude={lat}&longitude={lon}&start_date={str_start}&end_date={str_end}&hourly=pm2_5&timezone=Asia%2FBangkok"
     
     try:
-        # Thêm timeout và kiểm tra HTTP status để tránh treo vô thời hạn
         r_weather_resp = requests.get(weather_url, timeout=15)
         r_weather_resp.raise_for_status()
         r_weather = r_weather_resp.json()
@@ -104,7 +98,7 @@ def fetch_last_24_hours_data(lat, lon):
         df['month_sin'] = np.sin(2 * np.pi * df.index.month / 12)
         df['month_cos'] = np.cos(2 * np.pi * df.index.month / 12)
         df['day_of_week'] = df.index.dayofweek
-        # SỬ DỤNG LIST FEATURES MỚI (10 CỘT)
+        # SỬ DỤNG LIST FEATURES MỚI (11 CỘT)
         features = [
             'temperature',
             'wind-speed',
@@ -123,19 +117,16 @@ def fetch_last_24_hours_data(lat, lon):
         
         # KIỂM TRA PHẢI CÓ ĐỦ 24 GIỜ
         if len(df) < 24:
-            print(f"⚠️ Không đủ 24 giờ dữ liệu! (Chỉ lấy được {len(df)} giờ)")
+            print(f"Không đủ 24 giờ dữ liệu! (Chỉ lấy được {len(df)} giờ)")
             return None
 
         # CHỈ LẤY 24 GIỜ CUỐI CÙNG ĐỂ KHỚP VỚI TIME_STEPS = 24
         return df.tail(24).values
 
     except Exception as e:
-        print(f"❌ Lỗi fetch data: {e}")
+        print(f"Lỗi fetch data: {e}")
         return None
 
-# ==========================================
-# 4. API ROUTE PREDICT
-# ==========================================
 # 4. API ROUTE PREDICT
 # ==========================================
 @app.route('/predict', methods=['POST'])
@@ -149,15 +140,14 @@ def predict():
         # lat = 10.8231
         # lon = 106.6297
         # name = "Ho Chi Minh"
-        # BẮT CỜ TỪ NODE.JS GỬI SANG (mặc định là False)
         is_forecast = data.get('is_forecast', False)
 
         if not lat or not lon:
             return jsonify({'error': 'Thiếu tham số lat, lon'}), 400
 
-        print(f"\n🚀 PREDICT CALL: Tọa độ ({lat}, {lon}) - DỰ BÁO TƯƠNG LAI: {is_forecast}")
+        print(f"\nPREDICT CALL: Tọa độ ({lat}, {lon}) - DỰ BÁO TƯƠNG LAI: {is_forecast}")
 
-        # 1. Thu thập dữ liệu thô (24, 7)
+        # 1. Thu thập dữ liệu thô (24, 11)
         raw_data = fetch_last_24_hours_data(lat, lon) 
         if raw_data is None:
             return jsonify({'error': 'Dịch vụ Open-Meteo phản hồi thiếu dữ liệu'}), 502
@@ -201,7 +191,7 @@ def predict():
             hourly_status = []
             current_input = final_input.copy()
             
-            hourly_pm25_temp = [] # Lưu tạm để tính trung bình PM2.5 cho daily
+            hourly_pm25_temp = [] # Lưu tạm để tính trung bình PM2.5 cho hourly
 
             for _ in range(24):
                 pred_scaled = model.predict(current_input, verbose=0)
@@ -248,7 +238,7 @@ def predict():
 
     except Exception as e:
         import traceback
-        print(f"❌ ERROR: {traceback.format_exc()}")
+        print(f"ERROR: {traceback.format_exc()}")
         return jsonify({'error': 'Lỗi xử lý nội bộ tại Server'}), 500
     
 if __name__ == '__main__':

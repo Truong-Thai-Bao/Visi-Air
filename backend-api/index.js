@@ -9,10 +9,8 @@ const app = express();
 const port = process.env.PORT || 3005;
 
 app.use(cors());
-app.use(express.json()); // Bắt buộc phải có để đọc JSON body
+app.use(express.json()); //Đọc json body
 
-// --- ĐĂNG KÝ ROUTE ---
-// Mọi request bắt đầu bằng /api/chat sẽ đi vào chatRoutes
 app.use('/api', chatRoutes); 
 
 app.get('/', (req, res) => {
